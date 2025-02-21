@@ -4,7 +4,6 @@ import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
 
-
 # Load dataset
 df = px.data.tips()
 df2 = pd.DataFrame(df)
