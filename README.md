@@ -1,3 +1,2 @@
-# TajRupt_Cources
-TajRupt Cources
-
+# TajRupt_Courses
+TajRupt Courses
