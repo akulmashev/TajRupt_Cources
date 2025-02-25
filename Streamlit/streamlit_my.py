@@ -15,20 +15,30 @@ st.header("Пример исходных данных")
 if st.checkbox("Показать/Скрыть исходные данные."):
     st.dataframe(df)
 tab_titles = ["Анализ данных", "Корреляционная матрица",
-              "Граф 1", "Граф 2", "Граф 3", "Граф 4", "Граф 5"]
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(tab_titles)
+              "Граф 1", "Граф 2", "Граф 3", "Граф 4", "Граф 5", "Граф 6"]
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(tab_titles)
 
 with tab1:
+    st.html(f"<h2>Набор данных содержит следующие столбцы:<h2>"
+            f"<ul><li>total_bill: Общий счёт (в долларах).</li>"
+            f"<li>tip: Размер чаевых (в долларах).</li>"
+            f"<li>sex: Пол клиента (Male/Female).</li>"
+            f"<li>smoker: Был ли клиент курящим (Yes/No).</li>"
+            f"<li>day: День недели (Thu, Fri, Sat, Sun).</li>"
+            f"<li>time: Время посещения (Lunch/Dinner).</li>"
+            f"<li>size: Количество человек за столом.</li>")
     st.html(
         f"Кол-во строк в базе Tips - <span style='color: green;'><i><u>{df.shape[0]}</u></i></span>")
 
-    st.html(f"Женщин - <span style='color: green;'>{df[df['sex'] == "Female"]['sex'].count()}</span>, "
-            f"из них курят - <span style='color: green;'>{df[(df['sex'] == "Female") & (df['smoker'] == "Yes")]['sex'].count()}</span>. "
-            f"Общая сумма чаевых - <span style='color: green;'>{df[df['sex'] == "Female"]['tip'].sum().round(2)}</span>.")
+    st.html(f"Женщин - <span style='color: deeppink;'>{df[df['sex'] == "Female"]['sex'].count()}</span>, "
+            f"из них курят - <span style='color: red;'>{df[(df['sex'] == "Female") & (df['smoker'] == "Yes")]['sex'].count()}</span>. "
+            f"Общая сумма чаевых - <span style='color: yellow;'>{df[df['sex'] == "Female"]['tip'].sum().round(2)}$</span>. "
+            f"Общие траты - <span style='color: green;'>{df[df['sex'] == "Female"]['total_bill'].sum().round(2)}$</span>.")
 
-    st.html(f"Мужчин - <span style='color: green;'>{df[df['sex'] == "Male"]['sex'].count()}</span>, "
-            f"из них курят - <span style='color: green;'>{df[(df['sex'] == "Male") & (df['smoker'] == "Yes")]['sex'].count()}</span>. "
-            f"Общая сумма чаевых - <span style='color: green;'>{df[df['sex'] == "Male"]['tip'].sum().round(2)}</span>.")
+    st.html(f"Мужчин - <span style='color: blue;'>{df[df['sex'] == "Male"]['sex'].count()}</span>, "
+            f"из них курят - <span style='color: red;'>{df[(df['sex'] == "Male") & (df['smoker'] == "Yes")]['sex'].count()}</span>. "
+            f"Общая сумма чаевых - <span style='color: yellow;'>{df[df['sex'] == "Male"]['tip'].sum().round(2)}$</span>. "
+            f"Общие траты - <span style='color: green;'>{df[df['sex'] == "Male"]['total_bill'].sum().round(2)}$</span>.")
     st.html(
         f"Кол-во пустых полей в базе - <span style='color: green;'>{df.isnull().sum()[0]}</span>.")
     st.write(df.describe())
@@ -62,17 +72,40 @@ with tab2:
     )
     st.plotly_chart(fig)
 with tab3:
+    # Группировка данных по дням недели и подсчет количества посещений
+    visits_by_day = df['day'].value_counts().sort_index()
+
+    # Упорядочиваем дни недели в правильном порядке
+    days_order = ['Thur', 'Fri', 'Sat', 'Sun']
+    visits_by_day = visits_by_day.reindex(days_order)
+
+    # Создание линейного графика
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=visits_by_day.index,
+        y=visits_by_day.values,
+        mode='lines+markers',
+        line=dict(color='blue'),
+        name='Количество посещений'
+    ))
+    fig.update_layout(
+        title_text="Количество посещений по дням недели",
+        showlegend=True
+    )
+    st.plotly_chart(fig)
+with tab4:
 
     fig = px.scatter(df, x='total_bill', y='tip', color='time',
                      color_discrete_map={'Dinner': 'green', 'Lunch': 'yellow'},
                      title='Зависимость чаевых от общего счета')
     st.plotly_chart(fig)
-with tab4:
+with tab5:
     left, middle = st.columns(2)
-    if left.button("Cуммы трат на чаевые за обед/ужин по дням недели и полу", icon="💵", use_container_width=True):
+    if left.button("Среднее чаевых за обед/ужин по дням недели и полу", icon="💵", use_container_width=True):
         # Cуммы чаевых по дням недели и полу
         # Группировка данных по дням недели и полу
-        grouped = df.groupby(['day', 'sex']).sum().reset_index()
+        grouped = df.groupby(['day', 'sex'])['tip'].mean().reset_index()
         order = ['Thur', 'Fri', 'Sat', 'Sun']
         grouped['day'] = pd.Categorical(
             grouped['day'], categories=order, ordered=True)
@@ -82,13 +115,13 @@ with tab4:
         fig2 = px.bar(grouped, x='day', y='tip', color='sex', barmode='overlay',
                       color_discrete_map={
                           'Female': 'deeppink', 'Male': 'darkblue'},
-                      title='Cуммы чаевых по дням недели и полу',
-                      labels={'day': 'День недели', 'tip': 'Количество чаевых', 'sex': 'Пол'})
+                      title='Среднее чаевых за обед/ужин по дням недели и полу',
+                      labels={'day': 'День недели', 'tip': 'Cреднее чаевых', 'sex': 'Пол'})
         st.plotly_chart(fig2)
-    if middle.button("Cуммы трат за обед/ужин по дням недели и полу", icon="💵", use_container_width=True):
+    if middle.button("Среднее сумм за обед/ужин по дням недели и полу", icon="💵", use_container_width=True):
         # Cуммы трат за обед/ужин по дням недели и полу
         # Группировка данных по дням недели и полу
-        grouped = df.groupby(['day', 'sex']).sum().reset_index()
+        grouped = df.groupby(['day', 'sex'])['total_bill'].mean().reset_index()
         order = ['Thur', 'Fri', 'Sat', 'Sun']
         grouped['day'] = pd.Categorical(
             grouped['day'], categories=order, ordered=True)
@@ -98,10 +131,30 @@ with tab4:
         fig2 = px.bar(grouped, x='day', y='total_bill', color='sex', barmode='overlay',
                       color_discrete_map={
                           'Female': 'deeppink', 'Male': 'darkblue'},
-                      title='Cуммы трат за обед/ужин по дням недели и полу',
-                      labels={'day': 'День недели', 'tip': 'Количество чаевых', 'sex': 'Пол'})
+                      title='Среднее сумм за обед/ужин по дням недели и полу',
+                      labels={'day': 'День недели', 'total_bill': 'Среднее сумм', 'sex': 'Пол'})
         st.plotly_chart(fig2)
-with tab5:
+    if left.button("Среднее чаевых за обед/ужин по дням недели для курящих и не курящих", icon="🚬", use_container_width=True):
+        grouped = df.groupby(['day', 'smoker'])['tip'].mean().reset_index()
+        # Построение графика с использованием Plotly
+        fig2 = px.bar(grouped, x='day', y='tip', color='smoker', barmode='overlay',
+                      color_discrete_map={
+                          'Yes': 'deeppink', 'No': 'darkblue'},
+                      title='Среднее чаевых за обед/ужин по дням недели для курящих и не курящих',
+                      labels={'day': 'День недели', 'tip': 'Среднее чаевых', 'smoker': 'Курильшик'})
+        st.plotly_chart(fig2)
+    if middle.button("Среднее сумм за обед/ужин по дням недели для курящих и не курящих", icon="🚬", use_container_width=True):
+        grouped = df.groupby(['day', 'smoker'])[
+            'total_bill'].mean().reset_index()
+        # Построение графика с использованием Plotly
+        fig2 = px.bar(grouped, x='day', y='total_bill', color='smoker', barmode='overlay',
+                      color_discrete_map={
+                          'Yes': 'deeppink', 'No': 'darkblue'},
+                      title='Среднее сумм за обед/ужин по дням недели для курящих и не курящих',
+                      labels={'day': 'День недели', 'total_bill': 'Среднее сумм', 'smoker': 'Курильшик'})
+        st.plotly_chart(fig2)
+
+with tab6:
     # Сумма чаевых по времени приема пищи и полу
     # Группировка данных по времени приема пищи и полу
     grouped = df.groupby(['time', 'sex']).sum().reset_index()
@@ -113,7 +166,7 @@ with tab5:
                   title='Сумма чаевых по времени приема пищи и полу',
                   labels={'time': 'Время приема пищи', 'tip': 'Сумма чаевых', 'sex': 'Пол'})
     st.plotly_chart(fig2)
-with tab6:
+with tab7:
     # st.header("Среднее значение чаевых м\ж")
     # Определяем правильный порядок дней недели
     day_order = ['Thur', 'Fri', 'Sat', 'Sun']
@@ -143,7 +196,7 @@ with tab6:
         legend_title='Пол'
     )
     st.plotly_chart(fig)
-with tab7:
+with tab8:
     # Фильтрация данных: мужчины и женщины
     male_data = df[df['sex'] == 'Male']
     female_data = df[df['sex'] == 'Female']
