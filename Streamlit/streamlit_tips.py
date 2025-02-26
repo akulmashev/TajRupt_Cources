@@ -5,10 +5,28 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 
+if 'name' not in st.session_state:
+    st.session_state.name = "Темная тема"
+    st.session_state.val = True
+    st._config.set_option("theme.base", "dark")
 
-# Load dataset
+
+toggle_dark = st.toggle(st.session_state.name, value=st.session_state.val)
+
+if st.get_option("theme.base") == "light" and toggle_dark:
+    st._config.set_option("theme.base", "dark")
+    st.session_state.name = "Темная тема"
+    st.session_state.val = True
+    st.rerun()
+elif st.get_option("theme.base") == "dark" and not toggle_dark:
+    st._config.set_option("theme.base", "light")
+    st.session_state.name = "Светлая тема"
+    st.session_state.val = False
+    st.rerun()
+
 df = px.data.tips()
 df2 = pd.DataFrame(df)
+
 st.title("Анализ данных чаевых")
 
 st.header("Пример исходных данных")
@@ -30,15 +48,15 @@ with tab1:
     st.html(
         f"Кол-во строк в базе Tips - <span style='color: green;'><i><u>{df.shape[0]}</u></i></span>")
 
-    st.html(f"Женщин - <span style='color: deeppink;'>{df[df['sex'] == "Female"]['sex'].count()}</span>, "
-            f"из них курят - <span style='color: red;'>{df[(df['sex'] == "Female") & (df['smoker'] == "Yes")]['sex'].count()}</span>. "
-            f"Общая сумма чаевых - <span style='color: yellow;'>{df[df['sex'] == "Female"]['tip'].sum().round(2)}$</span>. "
-            f"Общие траты - <span style='color: green;'>{df[df['sex'] == "Female"]['total_bill'].sum().round(2)}$</span>.")
+    st.html(f"Женщин - <span style='color: deeppink;'>{df[df['sex'] == 'Female']['sex'].count()}</span>, "
+            f"из них курят - <span style='color: red;'>{df[(df['sex'] == 'Female') & (df['smoker'] == "Yes")]['sex'].count()}</span>. "
+            f"Общая сумма чаевых - <span style='color: yellow;'>{df[df['sex'] == 'Female']['tip'].sum().round(2)}$</span>. "
+            f"Общие траты - <span style='color: green;'>{df[df['sex'] == 'Female']['total_bill'].sum().round(2)}$</span>.")
 
-    st.html(f"Мужчин - <span style='color: blue;'>{df[df['sex'] == "Male"]['sex'].count()}</span>, "
-            f"из них курят - <span style='color: red;'>{df[(df['sex'] == "Male") & (df['smoker'] == "Yes")]['sex'].count()}</span>. "
-            f"Общая сумма чаевых - <span style='color: yellow;'>{df[df['sex'] == "Male"]['tip'].sum().round(2)}$</span>. "
-            f"Общие траты - <span style='color: green;'>{df[df['sex'] == "Male"]['total_bill'].sum().round(2)}$</span>.")
+    st.html(f"Мужчин - <span style='color: blue;'>{df[df['sex'] == 'Male']['sex'].count()}</span>, "
+            f"из них курят - <span style='color: red;'>{df[(df['sex'] == 'Male') & (df['smoker'] == "Yes")]['sex'].count()}</span>. "
+            f"Общая сумма чаевых - <span style='color: yellow;'>{df[df['sex'] == 'Male']['tip'].sum().round(2)}$</span>. "
+            f"Общие траты - <span style='color: green;'>{df[df['sex'] == 'Male']['total_bill'].sum().round(2)}$</span>.")
     st.html(
         f"Кол-во пустых полей в базе - <span style='color: green;'>{df.isnull().sum()[0]}</span>.")
     st.write(df.describe())
