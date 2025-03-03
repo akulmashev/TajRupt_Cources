@@ -4,6 +4,10 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+import streamlit as st
+import json
+#pip install streamlit-lottie
+from streamlit_lottie import st_lottie
 
 if 'name' not in st.session_state:
     st.session_state.name = "Темная тема"
@@ -26,12 +30,34 @@ elif st.get_option("theme.base") == "dark" and not toggle_dark:
 
 df = px.data.tips()
 df2 = pd.DataFrame(df)
+col1, mid, col2 = st.columns([20,1,15])
+with col1:
+    #st.title("Анализ данных чаевых")
+    st.markdown("<h1 style='text-align: center;'>Анализ данных чаевых</h1>", unsafe_allow_html=True)
+    #st.header("Пример исходных данных")
+with col2:
+    with open("Man.json", "r") as f:
+        data = json.load(f)
+    st_lottie(data,
+		# change the direction of our animation
+		reverse=True,
+		# height and width of animation
+		height=250,
+		width=250,
+		# speed of animation
+		speed=1,
+		# means the animation will run forever like a gif, and not as a still image
+		loop=True,
+		# quality of elements used in the animation, other values are "low" and "medium"
+		quality='high',
+		# THis is just to uniquely identify the animation
+		key='Man'
+		)
 
-st.title("Анализ данных чаевых")
-
-st.header("Пример исходных данных")
 if st.checkbox("Показать/Скрыть исходные данные."):
-    st.dataframe(df)
+    st.write("Градиент цветов, от меньшего к большему значению, по полю total_bill.")
+    st.dataframe(df.style.background_gradient(axis=0, gmap=df.total_bill, cmap='ocean_r'))
+
 tab_titles = ["🗄️Анализ данных", "🏁Корреляционная матрица",
               "📈№1", "✨№ 2", "📊№ 3", "📊№ 4", "〽️№ 5", "💿№ 6"]
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(tab_titles)
@@ -59,7 +85,8 @@ with tab1:
             f"Общие траты - <span style='color: green;'>{df[df['sex'] == 'Male']['total_bill'].sum().round(2)}$</span>.")
     st.html(
         f"Кол-во пустых полей в базе - <span style='color: green;'>{df.isnull().sum()[0]}</span>.")
-    st.write(df.describe())
+
+    st.dataframe(df.describe(include='all'), height=400)
 with tab2:
     tips_numeric = df.copy()
     for col in tips_numeric.select_dtypes(include=['category', 'object']).columns:
@@ -228,7 +255,7 @@ with tab8:
 
     # Создание подграфиков
     fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'pie'}, {'type': 'pie'}]],
-                        subplot_titles=('Мужчины', 'Женщины'))
+                        subplot_titles=('Мужчины👦', 'Женщины👩‍🦰'))
 
     # Добавление круговой диаграммы для мужчин
     fig.add_trace(
