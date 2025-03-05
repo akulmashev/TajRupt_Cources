@@ -34,6 +34,8 @@ col1, mid, col2 = st.columns([20,1,15])
 with col1:
     #st.title("Анализ данных чаевых")
     st.markdown("<h1 style='text-align: center;'>Анализ данных чаевых</h1>", unsafe_allow_html=True)
+    st.html("<p style='color: black'><u>Фреймворк</u>: streamlit;<br><u>Библиотеки</u>: plotly, pandas, numpy, json, streamlit_lottie</p>")
+
     #st.header("Пример исходных данных")
 with col2:
     with open("Man.json", "r") as f:
